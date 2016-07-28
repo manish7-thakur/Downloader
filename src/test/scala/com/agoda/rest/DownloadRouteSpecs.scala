@@ -3,8 +3,8 @@ package com.agoda.rest
 import akka.actor.ActorRefFactory
 import org.specs2.mutable.Specification
 import spray.http.StatusCodes
-import spray.testkit.Specs2RouteTest
 import spray.routing._
+import spray.testkit.Specs2RouteTest
 
 trait DownloadRoute extends HttpService {
   def downloadRoute = pathPrefix("download") {
