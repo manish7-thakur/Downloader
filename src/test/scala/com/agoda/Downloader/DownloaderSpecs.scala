@@ -1,27 +1,10 @@
 package com.agoda.Downloader
 
-import java.nio.file.{Files, Paths}
-
-import com.agoda.util.RandomUtil
+import com.agoda.downloader.Downloader
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-trait Downloader extends RandomUtil {
-  def getProtocol(urlString: String) = urlString.split("://").headOption
-  def verifyDirectory(directory: String) = Files.exists(Paths.get(directory))
-  def extractSftpParameters(s: String) = {
-    val protocol = s.split("://").head
-    val username = s.split("://").last.split(":").head
-    val password = s.split("://").last.split(":").last.split("@").head
-    val hostname = s.split("://").last.split(":").last.split("@").last.split(";").head
-    val fileName = s.split("://").last.split(":").last.split("@").last.split(";").last
-    (username, password, hostname, fileName)
-  }
-  def suggestFileName(url: String) = url.substring(url.lastIndexOf("/") + 1)
-}
 class DownloaderSpecs extends Specification with Downloader with Mockito {
-
-
 
   "Downloader" >> {
   "#getProtocol" should {
@@ -33,10 +16,10 @@ class DownloaderSpecs extends Specification with Downloader with Mockito {
     }
     "verifyDirectory" should {
       "say so if download directory doesn't exists" in {
-        verifyDirectory("/ext/invalid") mustEqual false
+        directoryExists("/ext/invalid") mustEqual false
       }
       "say so if download directory doesn't exists" in {
-        verifyDirectory("/etc") mustEqual true
+        directoryExists("/etc") mustEqual true
       }
     }
     "#extractSftpParameters" should {

@@ -1,13 +1,10 @@
 package com.agoda.Downloader
 
-import java.io.{OutputStream, InputStream, ByteArrayOutputStream, ByteArrayInputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
+import com.agoda.downloader.StreamProcessor
 import org.specs2.mutable.Specification
 
-trait StreamProcessor {
-  def moveBytes(in: InputStream, out: OutputStream) = Stream.continually(in.read).
-    takeWhile(-1 !=).foreach(b => { out.write(b); out.flush()})
-}
 class StreamProcessorSpecs extends Specification with StreamProcessor {
 
   "StreamProcessor" should {
