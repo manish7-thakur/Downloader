@@ -10,18 +10,17 @@ import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 
 class HTTPProtocolDownloadActorSpecs extends TestKit(ActorSystem("HTTPSpec", ConfigFactory.load("test"))) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with RandomUtil {
-  override def afterAll() = {
-    TestKit.shutdownActorSystem(system)
-  }
+  override def afterAll() = TestKit.shutdownActorSystem(system)
+
 
   "HTTPProtocolDownloadActor" should {
-    "should verify if the directory exists or not" in {
+    "verify if the directory exists or not" in {
       val httpDownloadActor = system.actorOf(Props[HTTPProtocolDownloadActor], "HTTPDownloadActor" + randomUUID)
       httpDownloadActor ! DownloadFile("http://www.google.com", "/downloads")
       expectMsg(InvalidDirectory("/downloads"))
     }
     }
-    "should download the file in the mentioned directory with file name" in {
+    "download the file in the mentioned directory with file name" in {
       val httpDownloadActor = system.actorOf(Props[HTTPProtocolDownloadActor], "HTTPDownloadActor" + randomUUID)
       httpDownloadActor ! DownloadFile("http://www.google.com", "src/test/resources")
       expectMsg(FileDownloaded("www.google.com"))
