@@ -11,6 +11,8 @@ libraryDependencies <++= scalaVersion { v =>
   Seq(
     "org.specs2" %% "specs2" % "2.4.17" % "test",
     "io.spray" %% "spray-testkit" % sprayVersion % "test",
-    "io.spray" %% "spray-routing" % sprayVersion
+    "io.spray" %% "spray-routing" % sprayVersion,
+    "org.scalatest" % "scalatest_2.11" % "3.0.0-M15",
+    "com.jcraft" % "jsch" % "0.1.53"
   )
 }
