@@ -7,10 +7,9 @@ import com.agoda.downloader.Downloader
 
 class HTTPProtocolDownloadActor extends DownloadActor with Downloader {
   def receive = {
-    case DownloadFile(url: String, location: String) => {
-      if(!directoryExists(location))
-        sender ! InvalidDirectory(location)
-      else {
+    case DownloadFile(url: String, location: String) => directoryExists(location) match {
+      case false => sender ! InvalidDirectory(location)
+      case true => {
         val fileName = downloadFile(url, location, new URL(url).openStream())
         sender ! FileDownloaded(fileName)
       }

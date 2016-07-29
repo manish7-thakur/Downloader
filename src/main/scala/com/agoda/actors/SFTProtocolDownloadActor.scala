@@ -1,15 +1,15 @@
 package com.agoda.actors
 
+import akka.actor.PoisonPill
 import com.agoda.actors.DownloadFlow.{FileDownloaded, InvalidDirectory, DownloadFile}
 import com.agoda.downloader.Downloader
 import com.jcraft.jsch.{ChannelSftp, JSch, Session}
 
 class SFTProtocolDownloadActor extends DownloadActor with Downloader {
   def receive = {
-    case DownloadFile(url, location) => {
-      if(!directoryExists(location))
-      sender ! InvalidDirectory("/downloads")
-      else {
+    case DownloadFile(url, location) => directoryExists(location) match {
+      case false => sender ! InvalidDirectory(location)
+      case true => {
         val  (username, password, hostname, path) = extractSftpParameters(url)
         val (session, sftpChannel) = getSFTPChannel(username, password, hostname)
         val fileName = downloadFile(url, location, sftpChannel.get(path))

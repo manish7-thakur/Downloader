@@ -1,14 +1,14 @@
 package com.agoda.actors
 
-import akka.actor.{Actor, ActorSystem, Props}
+import akka.actor.{PoisonPill, Actor, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
-import com.agoda.actors.DownloadFlow.{DownloadFile, FindChild}
+import com.agoda.actors.DownloadFlow.{DownloadFile, FindChildren, InvalidDirectory}
 import com.agoda.downloader.Downloader
 import com.agoda.util.RandomUtil
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 
-class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.load("test"))) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with RandomUtil{
+class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.load("test"))) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with RandomUtil {
 
   override def afterAll() = TestKit.shutdownActorSystem(system)
 
@@ -16,13 +16,13 @@ class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.
 
   "FlowActor" should {
     "create appropriate child actor based on ftp protocol & forward the message to it" in {
-      flowActor ! DownloadFile("ftp://someServerAtAgoda.com/file", "/someValidLocation")
-      flowActor ! FindChild
+      flowActor ! DownloadFile("ftp://someServerAtAgoda.com/file", "src/test/resources")
+      flowActor ! FindChildren
       expectMsg(1)
     }
     "create appropriate child actor based on sftp protocol & forward the message to it" in {
-      flowActor ! DownloadFile("sftp://someServerAtAgoda.com/file", "/someValidLocation")
-      flowActor ! FindChild
+      flowActor ! DownloadFile("http://someServerAtAgoda.com/file", "src/test/resources")
+      flowActor ! FindChildren
       expectMsg(2)
     }
   }
@@ -31,11 +31,16 @@ class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.
 class FlowActor extends Actor with Downloader {
   def receive = {
     case DownloadFile(url, location) => getProtocol(url) match {
-    case Some("http") | Some("ftp") =>
-      val downloadActor = context.actorOf(Props[HTTPProtocolDownloadActor], "HttpDownloadActor" + randomUUID)
-      downloadActor ! DownloadFile(url, location)
-    case Some("sftp") => context.actorOf(Props[SFTProtocolDownloadActor], "SftpDownloadActor" + randomUUID)
-  }
-    case FindChild => sender ! context.children.size
+      case Some("http") | Some("ftp") => {
+        val downloadActor = context.actorOf(Props[HTTPProtocolDownloadActor], "HttpDownloadActor" + randomUUID)
+        downloadActor ! DownloadFile(url, location)
+      }
+      case Some("sftp") => {
+        val downloadActor = context.actorOf(Props[SFTProtocolDownloadActor], "SftpDownloadActor" + randomUUID)
+        downloadActor ! DownloadFile(url, location)
+      }
+    }
+    case FindChildren => sender ! context.children.size
+    case InvalidDirectory(location) => sender ! PoisonPill
   }
 }
