@@ -17,6 +17,7 @@ class StreamProcessorSpecs extends Specification with StreamProcessor {
       inputStream.available() shouldEqual 26
       moveBytes(inputStream, outputPutStream)
       inputStream.available() shouldEqual 0
+      outputPutStream.size() shouldEqual 26
     }
   }
 

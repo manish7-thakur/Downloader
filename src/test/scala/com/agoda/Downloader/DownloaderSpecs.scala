@@ -2,9 +2,11 @@ package com.agoda.Downloader
 
 import java.nio.file.{Files, Paths}
 
+import com.agoda.util.RandomUtil
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-trait Downloader {
+trait Downloader extends RandomUtil {
   def getProtocol(urlString: String) = urlString.split("://").headOption
   def verifyDirectory(directory: String) = Files.exists(Paths.get(directory))
   def extractSftpParameters(s: String) = {
@@ -15,8 +17,9 @@ trait Downloader {
     val fileName = s.split("://").last.split(":").last.split("@").last.split(";").last
     (username, password, hostname, fileName)
   }
+  def suggestFileName(url: String) = url.substring(url.lastIndexOf("/") + 1)
 }
-class DownloaderSpecs extends Specification with Downloader {
+class DownloaderSpecs extends Specification with Downloader with Mockito {
 
 
 
@@ -39,6 +42,17 @@ class DownloaderSpecs extends Specification with Downloader {
     "#extractSftpParameters" should {
       "split the url into username, host, port, filePath" in {
         extractSftpParameters("sftp://username:password@hostname;/filename/gfr") shouldEqual ("username", "password", "hostname", "/filename/gfr")
+      }
+    }
+    "#suggestFileName" should {
+      "uniquely determine file name from the URL" in {
+        suggestFileName("http://my.file.com/file") shouldEqual "file"
+      }
+      "should include the extension name" in {
+        suggestFileName("sftp://and.also.this/ending.end") shouldEqual "ending.end"
+      }
+      "should include the domain name when path is not mentioned" in {
+        suggestFileName("http://www.google.com") shouldEqual "www.google.com"
       }
     }
   }
