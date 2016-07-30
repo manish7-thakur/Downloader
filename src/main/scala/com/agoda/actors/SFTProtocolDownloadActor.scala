@@ -1,7 +1,6 @@
 package com.agoda.actors
 
-import akka.actor.PoisonPill
-import com.agoda.actors.DownloadFlow.{FileDownloaded, InvalidDirectory, DownloadFile}
+import com.agoda.actors.DownloadFlow.{FileDownloaded, InvalidDirectory}
 import com.agoda.downloader.Downloader
 import com.jcraft.jsch.{ChannelSftp, JSch, Session}
 

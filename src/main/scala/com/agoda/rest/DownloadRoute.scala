@@ -1,15 +1,21 @@
 package com.agoda.rest
 
-import spray.http.StatusCodes
-import spray.routing.HttpService
+import akka.actor.ActorRef
+import com.agoda.actors.DownloadFile
+import com.agoda.dto.DownloadFileDto
+import com.agoda.dto.DownloadFileJsonProtocol._
+import spray.httpx.SprayJsonSupport._
+import spray.routing.{HttpService, RequestContext}
 
-/**
- * Created by mthakur on 29/07/16.
- */
 trait DownloadRoute extends HttpService {
-  def downloadRoute = pathPrefix("download") {
+
+  def downloadFlow(context: RequestContext): ActorRef
+
+  def downloadRoute = pathPrefix("api" / "download") {
     post {
-      complete(StatusCodes.OK)
+      entity(as[DownloadFileDto]) { dto =>
+        requestContext => downloadFlow(requestContext) ! DownloadFile.fromDto(dto)
+      }
     }
   }
 }

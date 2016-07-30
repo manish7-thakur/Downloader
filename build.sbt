@@ -16,6 +16,7 @@ libraryDependencies <++= scalaVersion { v =>
     "org.scalatest" % "scalatest_2.11" % "3.0.0-M15",
     "com.jcraft" % "jsch" % "0.1.53",
     "org.specs2" %% "specs2-mock" % "2.4.17" % "test",
-    "com.typesafe.akka" %% "akka-actor" % akkaVersion
+    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+    "io.spray" % "spray-json_2.11" % "1.3.2"
   )
 }

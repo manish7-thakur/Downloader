@@ -2,7 +2,7 @@ package com.agoda.actors
 
 import java.net.URL
 
-import com.agoda.actors.DownloadFlow.{FileDownloaded, InvalidDirectory, DownloadFile}
+import com.agoda.actors.DownloadFlow.{FileDownloaded, InvalidDirectory}
 import com.agoda.downloader.Downloader
 
 class HTTPProtocolDownloadActor extends DownloadActor with Downloader {

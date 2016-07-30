@@ -4,7 +4,7 @@ import java.nio.file.{Files, Paths}
 
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
-import com.agoda.actors.DownloadFlow.{DownloadFile, FileDownloaded, InvalidDirectory}
+import com.agoda.actors.DownloadFlow.{FileDownloaded, InvalidDirectory}
 import com.agoda.util.RandomUtil
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
