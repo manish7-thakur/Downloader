@@ -3,19 +3,18 @@ package com.agoda.actors
 import java.io.IOException
 import java.net.UnknownHostException
 
-import com.agoda.downloader.Downloader
-import org.specs2.mutable.Specification
-import org.specs2.matcher.Scope
-
 import scala.concurrent.duration._
 
 import akka.actor._
-import akka.actor.SupervisorStrategy.{Restart, Resume, Stop}
+import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
 import com.agoda.actors.DownloadFlow.{DownloadFile, FindChildren, InvalidDirectory}
+import com.agoda.downloader.Downloader
 import com.agoda.util.RandomUtil
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
+import org.specs2.matcher.Scope
+import org.specs2.mutable.Specification
 
 class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.load("test"))) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with RandomUtil {
 
