@@ -4,11 +4,8 @@ import java.nio.file.{Files, Paths}
 
 import com.agoda.util.RandomUtil
 
-/**
- * Created by mthakur on 29/07/16.
- */
 trait Downloader extends RandomUtil {
-  def getProtocol(urlString: String) = urlString.split("://").headOption
+  def getProtocol(urlString: String) = if(urlString.indexOf("://") != -1) urlString.substring(0, urlString.indexOf("://")) else ""
   def directoryExists(directory: String) = Files.exists(Paths.get(directory))
   def extractSftpParameters(s: String) = {
     val protocol = s.split("://").head

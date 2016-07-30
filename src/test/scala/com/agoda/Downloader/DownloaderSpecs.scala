@@ -9,10 +9,13 @@ class DownloaderSpecs extends Specification with Downloader with Mockito {
   "Downloader" >> {
   "#getProtocol" should {
     "return http protocol for the URL" in {
-      getProtocol("http://www.google.com") === Some("http")
+      getProtocol("http://www.google.com") === "http"
     }
     "return ftp protocol for the URL" in {
-      getProtocol("ftp://www.file.com/file") === Some("ftp")
+      getProtocol("ftp://www.file.com/file") === "ftp"
+    }
+    "return None for Bad URL" in {
+      getProtocol("gtpp:/www.file.com/file") === ""
     }
     "verifyDirectory" should {
       "say so if download directory doesn't exists" in {
