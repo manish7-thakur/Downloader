@@ -1,18 +1,14 @@
 package com.agoda.rest
 
-import akka.actor.{Actor, ActorSystem, ActorRefFactory, Props}
-import akka.testkit.{TestActorRef, TestProbe}
-import com.agoda.actors.{DownloadFile, FlowActor}
+import akka.actor.{Actor, ActorRefFactory}
+import akka.testkit.TestActorRef
+import com.agoda.actors.DownloadFile
 import com.agoda.dto.DownloadFileDto
-import org.specs2.mutable.Specification
-import spray.http.StatusCodes
-import spray.json.{JsString, JsObject}
-import spray.routing.{HttpServiceActor, RequestContext}
-import spray.testkit.Specs2RouteTest
-import spray.httpx.SprayJsonSupport._
 import com.agoda.dto.DownloadFileJsonProtocol._
-
-import scala.concurrent.duration.DurationInt
+import org.specs2.mutable.Specification
+import spray.httpx.SprayJsonSupport._
+import spray.routing.RequestContext
+import spray.testkit.Specs2RouteTest
 
 class DownloadRouteSpecs extends Specification with Specs2RouteTest with DownloadRoute {
 
@@ -38,11 +34,4 @@ class DownloadRouteSpecs extends Specification with Specs2RouteTest with Downloa
       }
     }
   }
-
-}
-
-class ApiActor extends HttpServiceActor with DownloadRoute {
-  override def receive = runRoute(downloadRoute)
-
-  override def downloadFlow(ctx: RequestContext) = context.actorOf(Props[FlowActor], "FlowActor")
 }
