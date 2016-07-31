@@ -7,14 +7,12 @@ import com.agoda.downloader.{Downloader, StreamProcessor}
 trait DownloadActor extends Actor with StreamProcessor {
   this: StreamProcessor with Downloader =>
 
-  def downloadFile(url: String, location: String, inputStream: InputStream): String = {
+  def downloadFile(filePath: String, inputStream: InputStream): String = {
     val in = new BufferedInputStream(inputStream)
-    val fileName = suggestFileName(url)
-    val filePath = s"$location/$fileName"
     val out = new BufferedOutputStream(new FileOutputStream(filePath))
     moveBytes(in, out)
     out.close()
     in.close()
-    fileName
+    filePath
   }
 }

@@ -1,4 +1,5 @@
 .idea
 target
 src/test/scala/com/agoda/test.sc
+project/project
 

@@ -6,21 +6,41 @@ import java.net.UnknownHostException
 import akka.actor._
 import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
+import com.agoda.actors.DeleteFileFlow.DeleteFile
+import com.agoda.actors.DownloadFlow.{FileDownloadFailed, InvalidDirectory, FileDownloaded}
 import com.agoda.util.RandomUtil
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 import org.specs2.matcher.Scope
+import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import spray.http.StatusCodes
+import spray.routing.RequestContext
 
-class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.load("test"))) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with RandomUtil {
+class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.load("test"))) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with RandomUtil with Mockito {
 
   override def afterAll() = TestKit.shutdownActorSystem(system)
 
-  trait ForwardMessageScope extends Scope {
+  trait MockedScope extends Scope {
+    val rc = mock[RequestContext]
     val probe = TestProbe()
-    val flowActor = TestActorRef(new FlowActor{
+  }
+
+  trait ForwardMessageScope extends MockedScope {
+
+    val flowActor = TestActorRef(new FlowActor(rc, probe.ref){
       override def createWorkerChild(protocol: String) = probe.ref
     })
+  }
+
+  trait RequestContextScope extends MockedScope {
+    val actor = system.actorOf(Props(classOf[FlowActor], rc, probe.ref), "FlowActor")
+    probe.watch(actor)
+  }
+
+  trait SupervisionScope extends Specification with MockedScope {
+    val supervisor = TestActorRef[FlowActor](Props(classOf[FlowActor], rc, probe.ref))
+    val strategy = supervisor.underlyingActor.supervisorStrategy.decider
   }
 
   "FlowActor" should {
@@ -32,21 +52,31 @@ class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.
       flowActor ! DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources")
       probe.expectMsg(DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources"))
     }
-    "stop the actor if host not found" in new Specification {
-      val supervisor = TestActorRef[FlowActor](Props[FlowActor])
-      val strategy = supervisor.underlyingActor.supervisorStrategy.decider
+    "stop the actor if host not found" in new SupervisionScope {
       strategy(new UnknownHostException) should be (Stop)
     }
-    "restart the actor in case of IOException" in new Specification {
-      val supervisor = TestActorRef[FlowActor](Props[FlowActor])
-      val strategy = supervisor.underlyingActor.supervisorStrategy.decider
+    "restart the actor in case of IOException" in new SupervisionScope {
       supervisor.underlyingActor.supervisorStrategy.maxNrOfRetries shouldEqual 2
       strategy(new IOException) should be (Restart)
     }
-    "stop the actor in case of UnknownException" in new Specification {
-      val supervisor = TestActorRef[FlowActor](Props[FlowActor])
-      val strategy = supervisor.underlyingActor.supervisorStrategy.decider
+    "stop the actor in case of UnknownException" in new SupervisionScope{
       strategy(new Exception) should be (Stop)
+    }
+    "stop itself when the file is downloaded" in new RequestContextScope {
+      actor ! FileDownloaded("directory/file")
+      there was one(rc).complete("File Downloaded : " + "directory/file")
+      probe.expectMsgClass(classOf[Terminated])
+    }
+    "complete request & stop itself if the directory could not be found" in new RequestContextScope {
+      actor ! InvalidDirectory("directory/some")
+      there was one(rc).complete("Directory could not be found : " + "directory/some")
+      probe.expectMsgClass(classOf[Terminated])
+    }
+    "ask the DeleteFileActor to remove partial data if file couldn't be downloaded" in new RequestContextScope {
+      val exception = new scala.Exception
+      actor ! FileDownloadFailed("path/to/file", exception)
+      there was one(rc).complete(StatusCodes.InternalServerError, exception.getMessage)
+      probe.expectMsg(DeleteFile("path/to/file"))
     }
   }
 }

@@ -22,17 +22,3 @@ class FileDeleteActorSpecs extends TestKit(ActorSystem("DeleteFileSpec", ConfigF
   }
 }
 
-class FileDeleteActor extends Actor {
-  def receive = {
-    case DeleteFile(path) => {
-      Files.deleteIfExists(Paths.get(path))
-      sender ! FileDeleted
-    }
-  }
-}
-
-object DeleteFileFlow{
-  case class DeleteFile(path: String)
-  case object FileDeleted
-}
-

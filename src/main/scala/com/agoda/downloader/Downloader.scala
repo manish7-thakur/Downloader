@@ -5,6 +5,11 @@ import java.nio.file.{Files, Paths}
 import com.agoda.util.RandomUtil
 
 trait Downloader extends RandomUtil {
+  def getFilePath(url: String, location: String) = {
+    val fileName = suggestFileName(url)
+    val filePath = s"$location/$fileName"
+    filePath
+  }
   def getProtocol(urlString: String) = if(urlString.indexOf("://") != -1) urlString.substring(0, urlString.indexOf("://")) else ""
   def directoryExists(directory: String) = Files.exists(Paths.get(directory))
   def extractSftpParameters(s: String) = {

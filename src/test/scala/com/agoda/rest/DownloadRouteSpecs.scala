@@ -17,8 +17,6 @@ import scala.concurrent.duration.DurationInt
 class DownloadRouteSpecs extends Specification with Specs2RouteTest with DownloadRoute {
 
   def actorRefFactory: ActorRefFactory = system
-  implicit def default(implicit system: ActorSystem) = RouteTestTimeout(new DurationInt(5).second)
-
 
   override def downloadFlow(requestContext: RequestContext) = TestActorRef(new Actor {
     def receive = {
