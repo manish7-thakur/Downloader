@@ -60,12 +60,12 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
     }
     "stop itself when the file is downloaded" in new RequestContextScope {
       actor ! FileDownloaded("directory/file")
-      there was one(rc).complete("File Downloaded : " + "directory/file")
+      there was one(rc).complete(StatusCodes.OK, "File Downloaded : " + "directory/file")
       probe.expectMsgClass(classOf[Terminated])
     }
     "complete request & stop itself if the directory could not be found" in new RequestContextScope {
       actor ! InvalidDirectory("directory/some")
-      there was one(rc).complete("Directory could not be found : " + "directory/some")
+      there was one(rc).complete(StatusCodes.NotFound,"Directory could not be found : " + "directory/some")
       probe.expectMsgClass(classOf[Terminated])
     }
     "ask the DeleteFileActor to remove partial data if file couldn't be downloaded" in new RequestContextScope {
@@ -76,7 +76,7 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
     }
     "respond with error for invalid protocol" in new RequestContextScope {
       actor ! DownloadFile("stp://someServerAtAgoda.com/file", "src/test/resources")
-      there was one(rc).complete("Invalid Protocol : " + "stp")
+      there was one(rc).complete(StatusCodes.NotFound,"Invalid Protocol : " + "stp")
       probe.expectMsgClass(classOf[Terminated])
     }
   }
