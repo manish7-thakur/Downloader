@@ -3,16 +3,13 @@ package com.agoda.actors
 import java.nio.file.{Files, Paths}
 
 import akka.actor.{ActorSystem, Props}
-import akka.testkit.{ImplicitSender, TestKit}
 import com.agoda.actors.DownloadFlow.{FileDownloadFailed, FileDownloaded, InvalidDirectory}
 import com.agoda.util.RandomUtil
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 import org.specs2.matcher.Scope
 import org.specs2.mutable.Specification
 
-class SFTPProtocolDownloadActorSpecs extends TestKit(ActorSystem("SFTPSpec", ConfigFactory.load("test"))) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with RandomUtil{
-  override def afterAll() = TestKit.shutdownActorSystem(system)
+class SFTPProtocolDownloadActorSpecs extends BaseActorTestKit(ActorSystem("SFTPSpec", ConfigFactory.load("test"))) with RandomUtil{
 
   trait ActorScope extends Scope {
     val sftpDownloadActor = system.actorOf(Props[SFTProtocolDownloadActor], "SFTPDownloadActor" + randomUUID)

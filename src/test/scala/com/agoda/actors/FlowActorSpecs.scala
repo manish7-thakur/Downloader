@@ -5,21 +5,18 @@ import java.net.UnknownHostException
 
 import akka.actor._
 import akka.actor.SupervisorStrategy.{Restart, Stop}
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
+import akka.testkit.{TestActorRef, TestProbe}
 import com.agoda.actors.DeleteFileFlow.DeleteFile
-import com.agoda.actors.DownloadFlow.{FileDownloadFailed, InvalidDirectory, FileDownloaded}
+import com.agoda.actors.DownloadFlow.{FileDownloadFailed, FileDownloaded, InvalidDirectory}
 import com.agoda.util.RandomUtil
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfterAll, WordSpecLike}
 import org.specs2.matcher.Scope
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 import spray.http.StatusCodes
 import spray.routing.RequestContext
 
-class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.load("test"))) with ImplicitSender with WordSpecLike with BeforeAndAfterAll with RandomUtil with Mockito {
-
-  override def afterAll() = TestKit.shutdownActorSystem(system)
+class FlowActorSpecs extends BaseActorTestKit(ActorSystem("FlowActorSpec", ConfigFactory.load("test"))) with RandomUtil with Mockito {
 
   trait MockedScope extends Scope {
     val rc = mock[RequestContext]
