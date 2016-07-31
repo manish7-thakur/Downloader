@@ -27,9 +27,8 @@ class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.
   }
 
   trait ForwardMessageScope extends MockedScope {
-
     val flowActor = TestActorRef(new FlowActor(rc, probe.ref){
-      override def createWorkerChild(protocol: String) = probe.ref
+      override def createWorkerChild(protocol: String) = Some(probe.ref)
     })
   }
 
@@ -77,6 +76,11 @@ class FlowActorSpecs extends TestKit(ActorSystem("FlowActorSpec", ConfigFactory.
       actor ! FileDownloadFailed("path/to/file", exception)
       there was one(rc).complete(StatusCodes.InternalServerError, exception.getMessage)
       probe.expectMsg(DeleteFile("path/to/file"))
+    }
+    "respond with error for invalid protocol" in new RequestContextScope {
+      actor ! DownloadFile("stp://someServerAtAgoda.com/file", "src/test/resources")
+      there was one(rc).complete("Invalid Protocol : " + "stp")
+      probe.expectMsgClass(classOf[Terminated])
     }
   }
 }
