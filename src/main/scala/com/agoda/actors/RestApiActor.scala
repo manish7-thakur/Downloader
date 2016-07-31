@@ -10,5 +10,5 @@ class RestApiActor extends HttpServiceActor with DownloadRoute with RandomUtil{
 
   val fileDeleteActor = context.actorOf(Props[FileDeleteActor], "FileDeleteActor")
 
-  override def downloadFlow(ctx: RequestContext) = context.actorOf(Props(classOf[FlowActor], ctx, fileDeleteActor), "FlowActor" + randomUUID)
+  override def downloadFlow(ctx: RequestContext) = context.actorOf(Props(classOf[DownloadFlowActor], ctx, fileDeleteActor), "FlowActor" + randomUUID)
 }

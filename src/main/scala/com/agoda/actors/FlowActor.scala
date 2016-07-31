@@ -1,49 +1,14 @@
 package com.agoda.actors
 
-import java.io.IOException
-import java.net.UnknownHostException
-
-import akka.actor.SupervisorStrategy.{Restart, Stop}
-import akka.actor._
-import com.agoda.actors.DeleteFileFlow.DeleteFile
-import com.agoda.actors.DownloadFlow.{FileDownloadFailed, FileDownloaded, InvalidDirectory, FindChildren}
-import com.agoda.downloader.Downloader
-import spray.http.StatusCodes
+import akka.actor.Actor
+import spray.http.{StatusCode, StatusCodes}
 import spray.routing.RequestContext
-import scala.concurrent.duration._
 
-class FlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends Actor with Downloader {
+abstract class FlowActor(ctx: RequestContext) extends Actor {
+  this: Actor =>
 
-  override val supervisorStrategy = OneForOneStrategy(2, 5 seconds){
-    case _: UnknownHostException => Stop
-    case _: IOException => Restart
-    case _: Exception => Stop
-  }
-  def receive = {
-    case DownloadFile(url, location) => {
-      val protocol = getProtocol(url)
-      createWorkerChild(protocol).fold{
-        ctx.complete(StatusCodes.NotFound, "Invalid Protocol: " + protocol)
-        context.stop(self)}(_ ! DownloadFile(url, location))
-    }
-    case FindChildren => sender ! context.children.size
-    case InvalidDirectory(location) => {
-      ctx.complete(StatusCodes.NotFound, "Directory not found : " + location)
-      context.stop(self)
-    }
-    case FileDownloaded(path) => {
-      ctx.complete("File Downloaded : " + path)
-      context.stop(self)
-    }
-    case FileDownloadFailed(path, cause: Throwable) => {
-      deleteFileActor ! DeleteFile(path)
-      ctx.complete(StatusCodes.InternalServerError, cause.getMessage)
-      context.stop(self)
-    }
-  }
-  def createWorkerChild(protocol: String) = protocol match {
-    case "http" | "ftp" => Some(context.actorOf(Props[HTTPProtocolDownloadActor], "HttpDownloadActor" + randomUUID))
-    case "sftp" => Some(context.actorOf(Props[SFTProtocolDownloadActor], "SftpDownloadActor" + randomUUID))
-    case _ => None
+  def completeRequest(statusCode: StatusCode = StatusCodes.NotFound, message: String): Unit = {
+    ctx.complete(statusCode, message)
+    context.stop(self)
   }
 }

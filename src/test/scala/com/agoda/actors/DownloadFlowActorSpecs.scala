@@ -16,7 +16,7 @@ import org.specs2.mutable.Specification
 import spray.http.StatusCodes
 import spray.routing.RequestContext
 
-class FlowActorSpecs extends BaseActorTestKit(ActorSystem("FlowActorSpec", ConfigFactory.load("test"))) with RandomUtil with Mockito {
+class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowActorSpec", ConfigFactory.load("test"))) with RandomUtil with Mockito {
 
   trait MockedScope extends Scope {
     val rc = mock[RequestContext]
@@ -24,28 +24,28 @@ class FlowActorSpecs extends BaseActorTestKit(ActorSystem("FlowActorSpec", Confi
   }
 
   trait ForwardMessageScope extends MockedScope {
-    val flowActor = TestActorRef(new FlowActor(rc, probe.ref){
+    val downloadFlowActor = TestActorRef(new DownloadFlowActor(rc, probe.ref){
       override def createWorkerChild(protocol: String) = Some(probe.ref)
     })
   }
 
   trait RequestContextScope extends MockedScope {
-    val actor = system.actorOf(Props(classOf[FlowActor], rc, probe.ref), "FlowActor")
+    val actor = system.actorOf(Props(classOf[DownloadFlowActor], rc, probe.ref), "DownloadFlowActor")
     probe.watch(actor)
   }
 
   trait SupervisionScope extends Specification with MockedScope {
-    val supervisor = TestActorRef[FlowActor](Props(classOf[FlowActor], rc, probe.ref))
+    val supervisor = TestActorRef[DownloadFlowActor](Props(classOf[DownloadFlowActor], rc, probe.ref))
     val strategy = supervisor.underlyingActor.supervisorStrategy.decider
   }
 
-  "FlowActor" should {
+  "DownloadFlowActor" should {
     "create child ftp actor & forward the message to it" in new ForwardMessageScope {
-      flowActor ! DownloadFile("ftp://someServerAtAgoda.com/file", "src/test/resources")
+      downloadFlowActor ! DownloadFile("ftp://someServerAtAgoda.com/file", "src/test/resources")
       probe.expectMsg(DownloadFile("ftp://someServerAtAgoda.com/file", "src/test/resources"))
       }
     "create child sftp actor & forward the message to it" in new ForwardMessageScope {
-      flowActor ! DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources")
+      downloadFlowActor ! DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources")
       probe.expectMsg(DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources"))
     }
     "stop the actor if host not found" in new SupervisionScope {
