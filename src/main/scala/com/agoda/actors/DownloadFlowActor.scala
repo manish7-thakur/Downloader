@@ -24,7 +24,11 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
   def receive = {
     case DownloadFile(url, location) => {
       val protocol = getProtocol(url)
-      createWorkerChild(protocol).fold(completeRequest(StatusCodes.NotFound, "Invalid Protocol: " + protocol))(_ ! DownloadFile(url, location))
+      protocol match {
+        case "http" | "ftp" | "https" => createWorkerChild(Props[HTTPProtocolDownloadActor], "HttpDownloadActor") ! DownloadFile(url, location)
+        case "sftp" => createWorkerChild(Props[SFTProtocolDownloadActor], "SftpDownloadActor") ! DownloadFile(url, location)
+        case _ => completeRequest(StatusCodes.NotFound, "Invalid Protocol: " + protocol)
+      }
     }
     case FindChildren => sender ! context.children.size
     case InvalidDirectory(location) => completeRequest(StatusCodes.NotFound, "Directory not found : " + location)
@@ -37,9 +41,5 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
     }
   }
 
-  def createWorkerChild(protocol: String) = protocol match {
-    case "http" | "ftp" => Some(context.actorOf(Props[HTTPProtocolDownloadActor], "HttpDownloadActor" + randomUUID))
-    case "sftp" => Some(context.actorOf(Props[SFTProtocolDownloadActor], "SftpDownloadActor" + randomUUID))
-    case _ => None
-  }
+  def createWorkerChild(props: Props, name: String) = context.actorOf(props, name + randomUUID)
 }

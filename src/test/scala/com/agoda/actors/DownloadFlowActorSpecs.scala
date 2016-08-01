@@ -25,7 +25,7 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
 
   trait ForwardMessageScope extends MockedScope {
     val downloadFlowActor = TestActorRef(new DownloadFlowActor(rc, probe.ref){
-      override def createWorkerChild(protocol: String) = Some(probe.ref)
+      override def createWorkerChild(props: Props, name: String) = probe.ref
     })
   }
 
@@ -44,6 +44,10 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
       downloadFlowActor ! DownloadFile("ftp://someServerAtAgoda.com/file", "src/test/resources")
       probe.expectMsg(DownloadFile("ftp://someServerAtAgoda.com/file", "src/test/resources"))
       }
+    "create child https actor & forward the message to it" in new ForwardMessageScope {
+      downloadFlowActor ! DownloadFile("https://someServerAtAgoda.com/file", "src/test/resources")
+      probe.expectMsg(DownloadFile("https://someServerAtAgoda.com/file", "src/test/resources"))
+    }
     "create child sftp actor & forward the message to it" in new ForwardMessageScope {
       downloadFlowActor ! DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources")
       probe.expectMsg(DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources"))
