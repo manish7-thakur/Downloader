@@ -13,7 +13,12 @@ class HTTPProtocolDownloadActor extends DownloadActor with Downloader {
       case false => sender ! InvalidDirectory(location)
       case true => {
         val filePath = getFilePath(url, location)
-        Try(downloadFile(filePath, new URL(url).openStream())) match {
+        Try {
+          val connection = new URL(url).openConnection()
+          //For slow servers to avoid blocking indefinitely
+          connection.setReadTimeout(10000)
+          downloadFile(filePath, connection.getInputStream)
+        } match {
           case Success(value) => sender ! FileDownloaded(filePath)
           case Failure(ex) => sender ! FileDownloadFailed(filePath, ex)
         }

@@ -35,6 +35,7 @@ class SFTProtocolDownloadActor extends DownloadActor with Downloader {
     session.setConfig("StrictHostKeyChecking", "no")
     session.setPassword(password)
     session.connect()
+    session.setTimeout(10000)
     val channel = session.openChannel("sftp")
     channel.connect()
     val sftpChannel = channel.asInstanceOf[ChannelSftp]

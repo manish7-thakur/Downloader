@@ -20,9 +20,5 @@ object DownloadFile {
 }
 
 object DeleteFileFlow {
-
   case class DeleteFile(path: String)
-
-  case object FileDeleted
-
 }
