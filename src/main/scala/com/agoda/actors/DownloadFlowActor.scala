@@ -27,7 +27,7 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
     case DownloadFile(url, location) => {
       val protocol = getProtocol(url)
       protocol match {
-        case "http" | "ftp" | "https" => createWorkerChild(Props[HTTPProtocolDownloadActor], "HttpDownloadActor") ! DownloadFile(url, location)
+        case "http" | "ftp" | "https" => createWorkerChild(Props[OpenProtocolDownloadActor], "OpenProtocolDownloadActor") ! DownloadFile(url, location)
         case "sftp" => createWorkerChild(Props[SFTProtocolDownloadActor], "SftpDownloadActor") ! DownloadFile(url, location)
         case _ => completeRequest(StatusCodes.NotFound, "Invalid Protocol: " + protocol)
       }

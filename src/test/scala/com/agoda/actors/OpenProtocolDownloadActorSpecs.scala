@@ -12,19 +12,19 @@ import org.specs2.mutable.Specification
 
 import scala.concurrent.duration.FiniteDuration
 
-class HTTPProtocolDownloadActorSpecs extends BaseActorTestKit(ActorSystem("HTTPSpec", ConfigFactory.load("test"))) with RandomUtil {
+class OpenProtocolDownloadActorSpecs extends BaseActorTestKit(ActorSystem("OpenProtocolActorSpec", ConfigFactory.load("test"))) with RandomUtil {
 
   trait ActorScope extends Scope {
-    val httpDownloadActor = system.actorOf(Props[HTTPProtocolDownloadActor], "HTTPDownloadActor" + randomUUID)
+    val openProtocolDownloadActor = system.actorOf(Props[OpenProtocolDownloadActor], "OpenDownloadActor" + randomUUID)
   }
 
-  "HTTPProtocolDownloadActor" should {
+  "OpenProtocolDownloadActor" should {
     "verify if the directory exists or not" in new ActorScope {
-      httpDownloadActor ! DownloadFile("http://www.google.com", "/downloads")
+      openProtocolDownloadActor ! DownloadFile("http://www.google.com", "/downloads")
       expectMsg(InvalidDirectory("/downloads"))
     }
     "download the file in the mentioned directory with file name" in new ActorScope{
-      httpDownloadActor ! DownloadFile("http://www.google.com", "src/test/resources")
+      openProtocolDownloadActor ! DownloadFile("http://www.google.com", "src/test/resources")
       expectMsg(FileDownloaded("src/test/resources/www.google.com"))
     }
     "create the file on disk with the specified name" in new Specification {
@@ -33,12 +33,12 @@ class HTTPProtocolDownloadActorSpecs extends BaseActorTestKit(ActorSystem("HTTPS
       Files.deleteIfExists(path)
     }
     "respond if the file could not be downloaded" in new ActorScope {
-      httpDownloadActor ! DownloadFile("sf://unknownhost", "src/test/resources")
+      openProtocolDownloadActor ! DownloadFile("sf://unknownhost", "src/test/resources")
       expectMsgClass(classOf[FileDownloadFailed])
     }
     "download the file with ftp protocol" in new Specification with ActorScope {
       val pathString = "src/test/resources/rfc959.txt"
-      httpDownloadActor ! DownloadFile("ftp://ftp.funet.fi/pub/standards/RFC/rfc959.txt", "src/test/resources")
+      openProtocolDownloadActor ! DownloadFile("ftp://ftp.funet.fi/pub/standards/RFC/rfc959.txt", "src/test/resources")
       expectMsg(FiniteDuration(1, TimeUnit.MINUTES), FileDownloaded(pathString))
       Files.exists(Paths.get(pathString)) shouldEqual true
       Files.deleteIfExists(Paths.get(pathString))
