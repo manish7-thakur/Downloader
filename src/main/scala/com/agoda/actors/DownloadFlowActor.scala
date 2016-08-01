@@ -3,6 +3,8 @@ package com.agoda.actors
 import java.io.IOException
 import java.net.UnknownHostException
 
+import com.agoda.util.RandomUtil
+
 import scala.concurrent.duration._
 
 import akka.actor._
@@ -13,7 +15,7 @@ import com.agoda.downloader.Downloader
 import spray.http.StatusCodes
 import spray.routing.RequestContext
 
-class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends FlowActor(ctx) with Downloader {
+class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends FlowActor(ctx) with Downloader with RandomUtil {
 
   override val supervisorStrategy = OneForOneStrategy(2, 5 seconds) {
     case _: UnknownHostException => Stop
