@@ -3,10 +3,10 @@ package com.agoda.actors
 import scala.util.{Failure, Success, Try}
 
 import com.agoda.actors.DownloadFlow.{FileDownloadFailed, FileDownloaded, InvalidDirectory}
-import com.agoda.downloader.Downloader
+import com.agoda.downloader.DownloadUtils
 import com.jcraft.jsch.{ChannelSftp, JSch, Session}
 
-class SFTProtocolDownloadActor extends DownloadActor with Downloader {
+class SFTProtocolDownloadActor extends DownloadActor with DownloadUtils {
   def receive = {
     case DownloadFile(url, location) => directoryExists(location) match {
       case false => sender ! InvalidDirectory(location)

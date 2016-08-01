@@ -2,7 +2,7 @@ package com.agoda.downloader
 
 import java.nio.file.{Files, Paths}
 
-trait Downloader {
+trait DownloadUtils {
   def getFilePath(url: String, location: String) = {
     val fileName = suggestFileName(url)
     val filePath = s"$location/$fileName"

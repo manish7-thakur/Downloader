@@ -11,11 +11,11 @@ import akka.actor._
 import akka.actor.SupervisorStrategy.{Restart, Stop}
 import com.agoda.actors.DeleteFileFlow.DeleteFile
 import com.agoda.actors.DownloadFlow.{FileDownloadFailed, FileDownloaded, FindChildren, InvalidDirectory}
-import com.agoda.downloader.Downloader
+import com.agoda.downloader.DownloadUtils
 import spray.http.StatusCodes
 import spray.routing.RequestContext
 
-class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends FlowActor(ctx) with Downloader with RandomUtil {
+class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends FlowActor(ctx) with DownloadUtils with RandomUtil {
 
   override val supervisorStrategy = OneForOneStrategy(2, 5 seconds) {
     case _: UnknownHostException => Stop

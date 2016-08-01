@@ -1,12 +1,12 @@
 package com.agoda.Downloader
 
-import com.agoda.downloader.Downloader
+import com.agoda.downloader.DownloadUtils
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
 
-class DownloaderSpecs extends Specification with Downloader with Mockito {
+class DownloadUtilsSpecs extends Specification with DownloadUtils {
 
-  "Downloader" >> {
+  "DownloaderUtils" >> {
   "#getProtocol" should {
     "return http protocol for the URL" in {
       getProtocol("http://www.google.com") === "http"
@@ -17,7 +17,7 @@ class DownloaderSpecs extends Specification with Downloader with Mockito {
     "return None for Bad URL" in {
       getProtocol("gtpp:/www.file.com/file") === ""
     }
-    "verifyDirectory" should {
+    "directoryExists" should {
       "say so if download directory doesn't exists" in {
         directoryExists("/ext/invalid") mustEqual false
       }
