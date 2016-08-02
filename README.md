@@ -1,6 +1,6 @@
 # Downloader
 This application can download data using different protocols. The server is built using SPRAY on top of AKKA with SCALA as the base language.
-The application uses actor per request model for concurrency. Some of the unit test are kind of integrated test which requires an internet 
+The application uses actor per request model for concurrency. Some of the unit tests are kind of integrated tests which requires an internet 
 connection and local server setup. The integration tests `DownloaderIntegrationSpecs` requires the server to be running.
 
 ## Command Line Testing
