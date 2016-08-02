@@ -1,7 +1,7 @@
 # Downloader
 This application can download data using different protocols. The server is built using SPRAY on top of AKKA with SCALA as the base language.
 The application uses actor per request model for concurrency. Some of the unit test are kind of integrated test which requires an internet 
-connection and local server setup. 
+connection and local server setup. The integration tests `DownloaderIntegrationSpecs` requires the server to be running.
 
 ## Command Line Testing
 
@@ -40,5 +40,5 @@ For SFTP protocol the server uses authentication. Port is assumed to be 22. The 
      curl -H "Content-Type:application/json; charset=utf-8" \
           -v \
           -X POST \
-          -d '{"url": "sftp://mthakur:l2dwq#y4b49@192.168.1.17;/etc/hosts", "location": "/Users/mthakur/Downloads"}' \
+          -d '{"url": "sftp://username:neverSharePasswords@hosts;/path/to/file", "location": "/Users/mthakur/Downloads"}' \
           http://localhost:5000/api/download

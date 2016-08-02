@@ -3,17 +3,16 @@ package com.agoda.actors
 import java.io.IOException
 import java.net.UnknownHostException
 
-import com.agoda.util.RandomUtil
-
-import scala.concurrent.duration._
-
-import akka.actor._
 import akka.actor.SupervisorStrategy.{Restart, Stop}
+import akka.actor._
 import com.agoda.actors.DeleteFileFlow.DeleteFile
 import com.agoda.actors.DownloadFlow.{FileDownloadFailed, FileDownloaded, FindChildren, InvalidDirectory}
 import com.agoda.downloader.DownloadUtils
+import com.agoda.util.RandomUtil
 import spray.http.StatusCodes
 import spray.routing.RequestContext
+
+import scala.concurrent.duration._
 
 class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends FlowActor(ctx) with DownloadUtils with RandomUtil {
 

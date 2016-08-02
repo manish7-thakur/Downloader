@@ -5,7 +5,7 @@ import com.agoda.rest.DownloadRoute
 import com.agoda.util.RandomUtil
 import spray.routing.{HttpServiceActor, RequestContext}
 
-class RestApiActor extends HttpServiceActor with DownloadRoute with RandomUtil{
+class RestApiActor extends HttpServiceActor with DownloadRoute with RandomUtil {
   override def receive = runRoute(downloadRoute)
 
   val fileDeleteActor = context.actorOf(Props[FileDeleteActor], "FileDeleteActor")

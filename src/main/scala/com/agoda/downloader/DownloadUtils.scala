@@ -28,9 +28,10 @@ trait DownloadUtils {
   def suggestFileName(url: String) = {
     val fileName = url.substring(url.lastIndexOf("/") + 1)
     fileName match {
-    case "" =>
-      val urlWithoutProtocol = url.split("://").last
-      urlWithoutProtocol.substring(0,  urlWithoutProtocol.indexOf("/"))
-    case _ => fileName
-  }}
+      case "" =>
+        val urlWithoutProtocol = url.split("://").last
+        urlWithoutProtocol.substring(0, urlWithoutProtocol.indexOf("/"))
+      case _ => fileName
+    }
+  }
 }

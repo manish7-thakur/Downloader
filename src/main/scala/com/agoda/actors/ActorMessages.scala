@@ -5,6 +5,7 @@ import com.agoda.dto.DownloadFileDto
 object DownloadFlow {
 
   case class FileDownloaded(fileName: String)
+
   case class FileDownloadFailed(path: String, cause: Throwable)
 
   case class InvalidDirectory(directory: String)
@@ -20,5 +21,7 @@ object DownloadFile {
 }
 
 object DeleteFileFlow {
+
   case class DeleteFile(path: String)
+
 }

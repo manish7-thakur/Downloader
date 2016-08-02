@@ -3,8 +3,8 @@ package com.agoda.actors
 import java.io.IOException
 import java.net.UnknownHostException
 
-import akka.actor._
 import akka.actor.SupervisorStrategy.{Restart, Stop}
+import akka.actor._
 import akka.testkit.{TestActorRef, TestProbe}
 import com.agoda.actors.DeleteFileFlow.DeleteFile
 import com.agoda.actors.DownloadFlow.{FileDownloadFailed, FileDownloaded, InvalidDirectory}

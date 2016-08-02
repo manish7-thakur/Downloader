@@ -1,6 +1,7 @@
 package com.agoda.actors
 
 import java.io.{BufferedInputStream, BufferedOutputStream, FileOutputStream, InputStream}
+
 import akka.actor.Actor
 import com.agoda.downloader.StreamProcessor
 
