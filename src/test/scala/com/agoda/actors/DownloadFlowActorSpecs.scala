@@ -20,37 +20,38 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
 
   trait MockedScope extends Scope {
     val rc = mock[RequestContext]
-    val probe = TestProbe()
+    val downloadActorProbe = TestProbe()
+    val fileDeleteActorProbe = TestProbe()
   }
 
   trait ForwardMessageScope extends MockedScope {
-    val downloadFlowActor = TestActorRef(new DownloadFlowActor(rc, probe.ref){
-      override def createWorkerChild(props: Props, name: String) = probe.ref
+    val downloadFlowActor = TestActorRef(new DownloadFlowActor(rc, fileDeleteActorProbe.ref){
+      override def createWorkerChild(props: Props, name: String) = downloadActorProbe.ref
     })
   }
 
   trait RequestContextScope extends MockedScope {
-    val actor = system.actorOf(Props(classOf[DownloadFlowActor], rc, probe.ref), "DownloadFlowActor")
-    probe.watch(actor)
+    val actor = system.actorOf(Props(classOf[DownloadFlowActor], rc, fileDeleteActorProbe.ref), "DownloadFlowActor")
+    downloadActorProbe.watch(actor)
   }
 
   trait SupervisionScope extends Specification with MockedScope {
-    val supervisor = TestActorRef[DownloadFlowActor](Props(classOf[DownloadFlowActor], rc, probe.ref))
+    val supervisor = TestActorRef[DownloadFlowActor](Props(classOf[DownloadFlowActor], rc, fileDeleteActorProbe.ref))
     val strategy = supervisor.underlyingActor.supervisorStrategy.decider
   }
 
   "DownloadFlowActor" should {
     "create child ftp actor & forward the message to it" in new ForwardMessageScope {
       downloadFlowActor ! DownloadFile("ftp://someServerAtAgoda.com/file", "src/test/resources")
-      probe.expectMsg(DownloadFile("ftp://someServerAtAgoda.com/file", "src/test/resources"))
+      downloadActorProbe.expectMsg(DownloadFile("ftp://someServerAtAgoda.com/file", "src/test/resources"))
       }
     "create child https actor & forward the message to it" in new ForwardMessageScope {
       downloadFlowActor ! DownloadFile("https://someServerAtAgoda.com/file", "src/test/resources")
-      probe.expectMsg(DownloadFile("https://someServerAtAgoda.com/file", "src/test/resources"))
+      downloadActorProbe.expectMsg(DownloadFile("https://someServerAtAgoda.com/file", "src/test/resources"))
     }
     "create child sftp actor & forward the message to it" in new ForwardMessageScope {
       downloadFlowActor ! DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources")
-      probe.expectMsg(DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources"))
+      downloadActorProbe.expectMsg(DownloadFile("sftp://someServerAtAgoda.com/file", "src/test/resources"))
     }
     "stop the actor if host not found" in new SupervisionScope {
       strategy(new UnknownHostException) should be (Stop)
@@ -65,23 +66,23 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
     "stop itself when the file is downloaded" in new RequestContextScope {
       actor ! FileDownloaded("directory/file")
       there was one(rc).complete(StatusCodes.OK, "File Downloaded : " + "directory/file")
-      probe.expectMsgClass(classOf[Terminated])
+      downloadActorProbe.expectMsgClass(classOf[Terminated])
     }
     "complete request & stop itself if the directory could not be found" in new RequestContextScope {
       actor ! InvalidDirectory("directory/some")
       there was one(rc).complete(StatusCodes.NotFound,"Directory not found : " + "directory/some")
-      probe.expectMsgClass(classOf[Terminated])
+      downloadActorProbe.expectMsgClass(classOf[Terminated])
     }
     "ask the DeleteFileActor to remove partial data if file couldn't be downloaded" in new RequestContextScope {
       val exception = new scala.Exception
       actor ! FileDownloadFailed("path/to/file", exception)
       there was one(rc).complete(StatusCodes.InternalServerError, exception.getMessage)
-      probe.expectMsg(DeleteFile("path/to/file"))
+      fileDeleteActorProbe.expectMsg(DeleteFile("path/to/file"))
     }
     "respond with error for invalid protocol" in new RequestContextScope {
       actor ! DownloadFile("stp://someServerAtAgoda.com/file", "src/test/resources")
       there was one(rc).complete(StatusCodes.NotFound,"Invalid Protocol : " + "stp")
-      probe.expectMsgClass(classOf[Terminated])
+      downloadActorProbe.expectMsgClass(classOf[Terminated])
     }
   }
 }
