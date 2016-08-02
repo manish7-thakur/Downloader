@@ -40,6 +40,9 @@ class DownloadUtilsSpecs extends Specification with DownloadUtils {
       "should include the domain name when path is not mentioned" in {
         suggestFileName("http://www.google.com") shouldEqual "www.google.com"
       }
+      "should still include the domain name when path mentioned is empty " in {
+        suggestFileName("http://www.google.com/") shouldEqual "www.google.com"
+      }
     }
   }
 }

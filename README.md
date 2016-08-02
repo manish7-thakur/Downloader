@@ -15,6 +15,14 @@ connection and local server setup.
          -d '{"url": "http://www.pdf995.com/samples/widgets.pdf", "location": "/Users/mthakur/Downloads"}' \
          http://localhost:5000/api/download
          
+#### HTTPS
+
+    curl -H "Content-Type:application/json; charset=utf-8" \
+         -v \
+         -X POST \
+         -d '{"url": "https://www.google.com", "location": "/Users/mthakur/Downloads"}' \
+         http://localhost:5000/api/download
+         
 #### FTP
 
      curl -H "Content-Type:application/json; charset=utf-8" \

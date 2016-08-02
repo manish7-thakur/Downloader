@@ -25,5 +25,12 @@ trait DownloadUtils {
     (username, password, hostname, path)
   }
 
-  def suggestFileName(url: String) = url.substring(url.lastIndexOf("/") + 1)
+  def suggestFileName(url: String) = {
+    val fileName = url.substring(url.lastIndexOf("/") + 1)
+    fileName match {
+    case "" =>
+      val urlWithoutProtocol = url.split("://").last
+      urlWithoutProtocol.substring(0,  urlWithoutProtocol.indexOf("/"))
+    case _ => fileName
+  }}
 }
