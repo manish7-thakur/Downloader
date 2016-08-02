@@ -11,6 +11,7 @@ libraryDependencies <++= scalaVersion { v =>
   val akkaVersion = "2.3.12"
   Seq(
     "org.specs2" %% "specs2" % "2.4.17" % "test",
+    "net.databinder.dispatch" %% "dispatch-core" % "0.11.3",
     "io.spray" %% "spray-testkit" % sprayVersion % "test",
     "io.spray" %% "spray-routing" % sprayVersion,
     "org.scalatest" % "scalatest_2.11" % "3.0.0-M15",
