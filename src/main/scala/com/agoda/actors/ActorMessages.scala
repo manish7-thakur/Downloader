@@ -10,8 +10,6 @@ object DownloadFlow {
 
   case class InvalidDirectory(directory: String)
 
-  case object FindChildren
-
 }
 
 case class DownloadFile(url: String, location: String)

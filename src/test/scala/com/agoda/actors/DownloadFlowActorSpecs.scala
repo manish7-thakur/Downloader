@@ -69,7 +69,7 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
     }
     "complete request & stop itself if the directory could not be found" in new RequestContextScope {
       actor ! InvalidDirectory("directory/some")
-      there was one(rc).complete(StatusCodes.NotFound,"Directory could not be found : " + "directory/some")
+      there was one(rc).complete(StatusCodes.NotFound,"Directory not found : " + "directory/some")
       probe.expectMsgClass(classOf[Terminated])
     }
     "ask the DeleteFileActor to remove partial data if file couldn't be downloaded" in new RequestContextScope {
