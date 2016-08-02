@@ -40,5 +40,5 @@ For SFTP protocol the server uses authentication. Port is assumed to be 22. The 
      curl -H "Content-Type:application/json; charset=utf-8" \
           -v \
           -X POST \
-          -d '{"url": "sftp://username:neverSharePasswords@hosts;/path/to/file", "location": "/Users/mthakur/Downloads"}' \
+          -d '{"url": "sftp://username:neverSharePasswords@host;/path/to/file", "location": "/Users/mthakur/Downloads"}' \
           http://localhost:5000/api/download
