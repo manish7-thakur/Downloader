@@ -17,7 +17,7 @@ object DownloadFlow {
 case class DownloadFile(url: String, location: String)
 
 object DownloadFile {
-  def fromDto(dto: DownloadFileDto) = DownloadFile(dto.url, dto.location)
+  def apply(dto: DownloadFileDto): DownloadFile = DownloadFile(dto.url, dto.location)
 }
 
 object DeleteFileFlow {

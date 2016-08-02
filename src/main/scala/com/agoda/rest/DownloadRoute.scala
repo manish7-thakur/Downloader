@@ -14,7 +14,7 @@ trait DownloadRoute extends HttpService {
   def downloadRoute = pathPrefix("api" / "download") {
     post {
       entity(as[DownloadFileDto]) { dto =>
-        requestContext => downloadFlow(requestContext) ! DownloadFile.fromDto(dto)
+        requestContext => downloadFlow(requestContext) ! DownloadFile(dto)
       }
     }
   }
