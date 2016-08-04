@@ -7,7 +7,7 @@ import akka.actor.SupervisorStrategy.{Restart, Stop}
 import akka.actor._
 import akka.testkit.{TestActorRef, TestProbe}
 import com.agoda.actors.DeleteFileFlow.DeleteFile
-import com.agoda.actors.DownloadFlow.{FileDownloadFailed, FileDownloaded, InvalidDirectory}
+import com.agoda.actors.DownloadFlow.{BulkDownload, FileDownloadFailed, FileDownloaded, InvalidDirectory}
 import com.agoda.util.RandomUtil
 import com.typesafe.config.ConfigFactory
 import org.specs2.matcher.Scope
@@ -18,7 +18,7 @@ import spray.routing.RequestContext
 
 class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowActorSpec", ConfigFactory.load("test"))) with RandomUtil with Mockito {
 
-  trait MockedScope extends Scope {
+  trait MockedScope extends Specification with Scope {
     val rc = mock[RequestContext]
     val downloadActorProbe = TestProbe()
     val fileDeleteActorProbe = TestProbe()
@@ -35,7 +35,7 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
     downloadActorProbe.watch(actor)
   }
 
-  trait SupervisionScope extends Specification with MockedScope {
+  trait SupervisionScope extends MockedScope {
     val supervisor = TestActorRef[DownloadFlowActor](Props(classOf[DownloadFlowActor], rc, fileDeleteActorProbe.ref))
     val strategy = supervisor.underlyingActor.supervisorStrategy.decider
   }
@@ -83,6 +83,27 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
       actor ! DownloadFile("stp://someServerAtAgoda.com/file", "src/test/resources")
       there was one(rc).complete(StatusCodes.NotFound,"Invalid Protocol : " + "stp")
       downloadActorProbe.expectMsgClass(classOf[Terminated])
+    }
+    "become aggressive receiving a BulkDownloadRequest" in new ForwardMessageScope {
+      downloadFlowActor ! BulkDownload(Seq("https://someServerAtAgoda.com/file"), "defaultLocation")
+      downloadActorProbe.expectMsg(DownloadFile("https://someServerAtAgoda.com/file", "defaultLocation"))
+    }
+    "send individual request to download file to mentioned location" in new ForwardMessageScope {
+      downloadFlowActor ! BulkDownload(Seq("http://download1", "sftp://download2", "ftp://download3"), "defaultLocation")
+      downloadActorProbe.expectMsgAllOf(DownloadFile("http://download1", "defaultLocation"), DownloadFile("sftp://download2", "defaultLocation"), DownloadFile("ftp://download3", "defaultLocation"))
+    }
+    "not create a request for invalid protocol & store the status in the map" in new ForwardMessageScope {
+      downloadFlowActor ! BulkDownload(Seq("stp://download2"), "defaultLocation")
+      downloadActorProbe.expectNoMsg()
+      downloadFlowActor.underlyingActor.statusMap shouldEqual Map("stp://download2" -> "Invalid Protocol: stp")
+    }
+    "store the status of each requested url in the map" in new ForwardMessageScope {
+      downloadFlowActor ! BulkDownload(Seq("https://download1"), "defaultLocation")
+      downloadActorProbe.expectMsg(DownloadFile("https://download1", "defaultLocation"))
+      downloadFlowActor ! FileDownloaded("http://download2")
+      downloadFlowActor ! FileDownloaded("sftp://download3")
+      downloadFlowActor ! FileDownloadFailed("stp://download4", new Exception)
+      downloadFlowActor.underlyingActor.statusMap should  containAllOf(Seq("http://download2" -> "OK", "sftp://download3" -> "OK", "stp://download4" -> null))
     }
   }
 }
