@@ -62,13 +62,17 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
         }
         case _ => statusMap += ((url, "Invalid Protocol: " + protocol))
       }}
+    case InvalidDirectory(location) => completeRequest(StatusCodes.NotFound, "Directory not found : " + location)
+
     case FileDownloaded(path) => {
       remainingTask -= 1
       statusMap +=(path -> "OK")
+      if(remainingTask == 0) completeRequest(StatusCodes.OK, statusMap.toMap)
     }
     case FileDownloadFailed(path, cause) => {
       remainingTask -= 1
       statusMap +=(path -> cause.getMessage)
+      if(remainingTask == 0) completeRequest(StatusCodes.OK, statusMap.toMap)
     }
   }
 
