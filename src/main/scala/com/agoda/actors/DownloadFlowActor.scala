@@ -46,17 +46,30 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
   }
 
   var statusMap = scala.collection.mutable.HashMap[String, String]()
+  var remainingTask = 0
 
   def bulkDownload: Receive = {
     case BulkDownload(urls, location) =>   urls foreach { url =>
       val protocol = getProtocol(url)
       protocol match {
-        case "http" | "ftp" | "https" => createWorkerChild(Props[OpenProtocolDownloadActor], "OpenProtocolDownloadActor") ! DownloadFile(url, location)
-        case "sftp" => createWorkerChild(Props[SFTProtocolDownloadActor], "SftpDownloadActor") ! DownloadFile(url, location)
+        case "http" | "ftp" | "https" => {
+          remainingTask += 1
+          createWorkerChild(Props[OpenProtocolDownloadActor], "OpenProtocolDownloadActor") ! DownloadFile(url, location)
+        }
+        case "sftp" => {
+          remainingTask += 1
+          createWorkerChild(Props[SFTProtocolDownloadActor], "SftpDownloadActor") ! DownloadFile(url, location)
+        }
         case _ => statusMap += ((url, "Invalid Protocol: " + protocol))
       }}
-    case FileDownloaded(path) => statusMap +=(path -> "OK")
-    case FileDownloadFailed(path, cause) => statusMap +=(path -> cause.getMessage)
+    case FileDownloaded(path) => {
+      remainingTask -= 1
+      statusMap +=(path -> "OK")
+    }
+    case FileDownloadFailed(path, cause) => {
+      remainingTask -= 1
+      statusMap +=(path -> cause.getMessage)
+    }
   }
 
   def createWorkerChild(props: Props, name: String) = context.actorOf(props, name + randomUUID)

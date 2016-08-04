@@ -105,6 +105,23 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
       downloadFlowActor ! FileDownloadFailed("stp://download4", new Exception)
       downloadFlowActor.underlyingActor.statusMap should  containAllOf(Seq("http://download2" -> "OK", "sftp://download3" -> "OK", "stp://download4" -> null))
     }
+    "increments the task count after forwarding the task to child actor" in new ForwardMessageScope {
+      downloadFlowActor ! BulkDownload(Seq("http://download1", "sftp://download2", "ftp://download3"), "defaultLocation")
+      downloadFlowActor.underlyingActor.remainingTask shouldEqual 3
+    }
+    "not increment the counter in case of invalid protocol" in new ForwardMessageScope {
+      downloadFlowActor ! BulkDownload(Seq("htp://download1", "sftp://download2"), "defaultLocation")
+      downloadFlowActor.underlyingActor.remainingTask shouldEqual 1
+    }
+    "decrements the task count after tasks are completed" in new ForwardMessageScope {
+      downloadFlowActor ! BulkDownload(Seq("https://download1"), "defaultLocation")
+      downloadActorProbe.expectMsg(DownloadFile("https://download1", "defaultLocation"))
+      downloadFlowActor.underlyingActor.remainingTask = 3
+      downloadFlowActor ! FileDownloaded("http://download1")
+      downloadFlowActor ! FileDownloaded("http://download2")
+      downloadFlowActor ! FileDownloadFailed("http://download3", new Exception("Boom"))
+      downloadFlowActor.underlyingActor.remainingTask shouldEqual 0
+    }
   }
 }
 
