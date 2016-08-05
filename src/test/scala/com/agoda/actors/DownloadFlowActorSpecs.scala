@@ -45,6 +45,7 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
   }
 
   trait BulkDownloadModeScope extends ForwardMessageScope {
+    val victimProbe = TestProbe()
     downloadFlowActor ! BulkDownloadMode
   }
 
@@ -107,14 +108,12 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
         downloadFlowActor.underlyingActor.statusMap shouldEqual Map("stp://download2" -> "Invalid Protocol: stp")
       }
       "store the status & stop the child actor upon receiving the FileDownloaded message" in new BulkDownloadModeScope {
-        val victimProbe = TestProbe()
         downloadActorProbe.watch(victimProbe.ref)
         victimProbe.send(downloadFlowActor, FileDownloaded("path"))
         downloadActorProbe.expectTerminated(victimProbe.ref)
         downloadFlowActor.underlyingActor.statusMap shouldEqual Map("path" -> "OK")
       }
       "store the status & stop the child actor upon receiving the FileDownloadFailed message" in new BulkDownloadModeScope {
-        val victimProbe = TestProbe()
         downloadActorProbe.watch(victimProbe.ref)
         victimProbe.send(downloadFlowActor, FileDownloadFailed("path", new Exception("Boom")))
         downloadActorProbe.expectTerminated(victimProbe.ref)
@@ -127,7 +126,6 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
         downloadActorProbe.expectMsgClass(classOf[Terminated])
       }
       "stop itself when all tasks are done & send the response" in new BulkDownloadModeScope {
-        val victimProbe = TestProbe()
         downloadFlowActor.watch(victimProbe.ref)
         downloadActorProbe.watch(downloadFlowActor)
         downloadFlowActor.underlyingActor.context.children.size shouldEqual 0
