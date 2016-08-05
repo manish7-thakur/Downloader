@@ -2,11 +2,12 @@ package com.agoda.actors
 
 import java.io.IOException
 import java.net.UnknownHostException
+import java.util.concurrent.TimeUnit
 import akka.actor._
 import akka.actor.SupervisorStrategy.{Restart, Stop}
-import akka.testkit.{TestActorRef, TestProbe}
+import akka.testkit.{ImplicitSender, TestFSMRef, TestActorRef, TestProbe}
 import com.agoda.actors.DeleteFileFlow.DeleteFile
-import com.agoda.actors.DownloadFlow.{BulkDownload, FileDownloadFailed, FileDownloaded, InvalidDirectory}
+import com.agoda.actors.DownloadFlow._
 import com.agoda.util.RandomUtil
 import com.typesafe.config.ConfigFactory
 import org.specs2.matcher.Scope
@@ -16,6 +17,8 @@ import spray.http.StatusCodes
 import spray.httpx.SprayJsonSupport._
 import spray.json.DefaultJsonProtocol._
 import spray.routing.RequestContext
+
+import scala.concurrent.duration.FiniteDuration
 
 class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowActorSpec", ConfigFactory.load("test"))) with RandomUtil with Mockito {
 
@@ -86,7 +89,7 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
       downloadActorProbe.expectMsgClass(classOf[Terminated])
     }
     "DownloadFlowActor in BulkDownload mode" should {
-      "become aggressive receiving a BulkDownloadRequest" in new ForwardMessageScope {
+     /* "become aggressive receiving a BulkDownloadRequest" in new ForwardMessageScope {
         downloadFlowActor ! BulkDownload(Seq("https://someServerAtAgoda.com/file"), "defaultLocation")
         downloadActorProbe.expectMsg(DownloadFile("https://someServerAtAgoda.com/file", "defaultLocation"))
       }
@@ -136,6 +139,22 @@ class DownloadFlowActorSpecs extends BaseActorTestKit(ActorSystem("DownloadFlowA
         downloadFlowActor ! FileDownloaded("path1")
         downloadFlowActor ! FileDownloadFailed("path2", new Exception("Boom"))
         there were one(rc).complete(StatusCodes.OK, Map("path1" -> "OK", "path2" -> "Boom"))
+      }*/
+      "store the status & stop the child actor upon receiving the FileDownloaded message" in new ForwardMessageScope {
+        downloadFlowActor ! BulkDownloadMode
+        val victimProbe = TestProbe()
+        downloadActorProbe.watch(victimProbe.ref)
+        victimProbe.send(downloadFlowActor, FileDownloaded("path"))
+        downloadActorProbe.expectTerminated(victimProbe.ref)
+        downloadFlowActor.underlyingActor.statusMap shouldEqual Map("path" -> "OK")
+      }
+      "store the status & stop the child actor upon receiving the FileDownloadFailed message" in new ForwardMessageScope {
+        downloadFlowActor ! BulkDownloadMode
+        val victimProbe = TestProbe()
+        downloadActorProbe.watch(victimProbe.ref)
+        victimProbe.send(downloadFlowActor, FileDownloadFailed("path", new Exception("Boom")))
+        downloadActorProbe.expectTerminated(victimProbe.ref)
+        downloadFlowActor.underlyingActor.statusMap shouldEqual Map("path" -> "Boom")
       }
     }
   }

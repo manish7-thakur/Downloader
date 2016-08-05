@@ -10,6 +10,7 @@ object DownloadFlow {
 
   case class InvalidDirectory(directory: String)
   case class BulkDownload(strings: Seq[String], defaultLocation: String)
+  case object BulkDownloadMode
 
 }
 

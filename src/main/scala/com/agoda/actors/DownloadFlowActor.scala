@@ -8,7 +8,7 @@ import scala.concurrent.duration._
 import akka.actor._
 import akka.actor.SupervisorStrategy.{Restart, Stop}
 import com.agoda.actors.DeleteFileFlow.DeleteFile
-import com.agoda.actors.DownloadFlow.{BulkDownload, FileDownloadFailed, FileDownloaded, InvalidDirectory}
+import com.agoda.actors.DownloadFlow._
 import com.agoda.downloader.DownloadUtils
 import com.agoda.util.RandomUtil
 import spray.http.StatusCodes
@@ -39,40 +39,33 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
       deleteFileActor ! DeleteFile(path)
       completeRequest(StatusCodes.InternalServerError, cause.getMessage)
     }
-    case BulkDownload(urls, location) => {
-      context.become(bulkDownload)
-      self ! BulkDownload(urls, location)
-    }
+    case BulkDownloadMode => context.become(bulkDownload)
+
   }
 
   var statusMap = scala.collection.mutable.HashMap[String, String]()
-  var remainingTask = 0
 
   def bulkDownload: Receive = {
     case BulkDownload(urls, location) =>   urls foreach { url =>
       val protocol = getProtocol(url)
       protocol match {
         case "http" | "ftp" | "https" => {
-          remainingTask += 1
           createWorkerChild(Props[OpenProtocolDownloadActor], "OpenProtocolDownloadActor") ! DownloadFile(url, location)
         }
         case "sftp" => {
-          remainingTask += 1
           createWorkerChild(Props[SFTProtocolDownloadActor], "SftpDownloadActor") ! DownloadFile(url, location)
         }
-        case _ => statusMap += ((url, "Invalid Protocol: " + protocol))
+        case _ => statusMap += (url -> s"Invalid Protocol: $protocol")
       }}
     case InvalidDirectory(location) => completeRequest(StatusCodes.NotFound, "Directory not found : " + location)
 
     case FileDownloaded(path) => {
-      remainingTask -= 1
-      statusMap +=(path -> "OK")
-      if(remainingTask == 0) completeRequest(StatusCodes.OK, statusMap.toMap)
+      statusMap += (path -> "OK")
+      sender ! PoisonPill
     }
     case FileDownloadFailed(path, cause) => {
-      remainingTask -= 1
-      statusMap +=(path -> cause.getMessage)
-      if(remainingTask == 0) completeRequest(StatusCodes.OK, statusMap.toMap)
+      statusMap += (path -> cause.getMessage)
+      sender ! PoisonPill
     }
   }
 
