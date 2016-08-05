@@ -21,7 +21,7 @@ class SFTPProtocolDownloadActorSpecs extends BaseActorTestKit(ActorSystem("SFTPS
     }
     //Needs a SFTP server local to your machine
     "download the file in the mentioned directory with file name" in new ActorScope {
-      sftpDownloadActor ! DownloadFile("sftp://mthakur:l2dwq#y4b49@192.168.1.17;/etc/hosts", "src/test/resources")
+      sftpDownloadActor ! DownloadFile("sftp://mthakur:l2dwq#y4b49@192.168.1.2;/etc/hosts", "src/test/resources")
       expectMsg(FileDownloaded("src/test/resources/hosts"))
     }
     "create the file on disk with the specified name" in new Specification {
