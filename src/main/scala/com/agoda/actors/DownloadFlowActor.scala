@@ -3,16 +3,16 @@ package com.agoda.actors
 import java.io.IOException
 import java.net.UnknownHostException
 
-import scala.concurrent.duration._
-
-import akka.actor._
 import akka.actor.SupervisorStrategy.{Restart, Stop}
+import akka.actor._
 import com.agoda.actors.DeleteFileFlow.DeleteFile
 import com.agoda.actors.DownloadFlow._
 import com.agoda.downloader.DownloadUtils
 import com.agoda.util.RandomUtil
 import spray.http.StatusCodes
 import spray.routing.RequestContext
+
+import scala.concurrent.duration._
 
 class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends FlowActor(ctx) with DownloadUtils with RandomUtil {
 
@@ -28,12 +28,12 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
       protocol match {
         case "http" | "ftp" | "https" => createWorkerChild(Props[OpenProtocolDownloadActor], "OpenProtocolDownloadActor") ! DownloadFile(url, location)
         case "sftp" => createWorkerChild(Props[SFTProtocolDownloadActor], "SftpDownloadActor") ! DownloadFile(url, location)
-        case _ => completeRequest(StatusCodes.NotFound, "Invalid Protocol: " + protocol)
+        case _ => completeRequest(StatusCodes.NotFound, s"Invalid Protocol: $protocol")
       }
     }
-    case InvalidDirectory(location) => completeRequest(StatusCodes.NotFound, "Directory not found : " + location)
+    case InvalidDirectory(location) => completeRequest(StatusCodes.NotFound, s"Directory not found : $location")
 
-    case FileDownloaded(path) => completeRequest(StatusCodes.OK, "File Downloaded : " + path)
+    case FileDownloaded(path) => completeRequest(StatusCodes.OK, s"File Downloaded : $path")
 
     case FileDownloadFailed(path, cause: Throwable) => {
       deleteFileActor ! DeleteFile(path)
@@ -46,7 +46,7 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
   var statusMap = Map[String, String]()
 
   def bulkDownload: Receive = {
-    case BulkDownload(urls, location) =>   urls foreach { url =>
+    case BulkDownload(urls, location) => urls foreach { url =>
       val protocol = getProtocol(url)
       protocol match {
         case "http" | "ftp" | "https" => {
@@ -59,9 +59,10 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
           context.watch(worker)
           worker ! DownloadFile(url, location)
         }
-        case _ =>   statusMap = statusMap + (url -> s"Invalid Protocol: $protocol")
-      }}
-    case InvalidDirectory(location) => completeRequest(StatusCodes.NotFound, "Directory not found : " + location)
+        case _ => statusMap = statusMap + (url -> s"Invalid Protocol: $protocol")
+      }
+    }
+    case InvalidDirectory(location) => completeRequest(StatusCodes.NotFound, s"Directory not found : $location")
 
     case FileDownloaded(path) => {
       statusMap = statusMap + (path -> "OK")
@@ -71,7 +72,7 @@ class DownloadFlowActor(ctx: RequestContext, deleteFileActor: ActorRef) extends 
       statusMap = statusMap + (path -> cause.getMessage)
       sender ! PoisonPill
     }
-    case Terminated(actor) => if(context.children.size == 0) completeRequest(StatusCodes.OK, statusMap);
+    case Terminated(actor) => if (context.children.size == 0) completeRequest(StatusCodes.OK, statusMap)
   }
 
   def createWorkerChild(props: Props, name: String) = context.actorOf(props, name + randomUUID)
