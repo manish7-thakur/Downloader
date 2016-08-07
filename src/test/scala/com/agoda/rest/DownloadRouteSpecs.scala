@@ -19,7 +19,7 @@ class DownloadRouteSpecs extends Specification with Specs2RouteTest with Downloa
     def receive = {
       case DownloadFile(url, location) => requestContext.complete(DownloadFileDto(url, location))
       case BulkDownloadMode =>
-      case BulkDownload(urlList, "defaultLocation") => requestContext.complete(urlList)
+      case BulkDownload(urlList, defaultLocation) => requestContext.complete(urlList)
     }
   })
 

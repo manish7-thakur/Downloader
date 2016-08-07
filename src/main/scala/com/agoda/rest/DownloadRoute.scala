@@ -7,6 +7,7 @@ import com.agoda.dto.DownloadFileDto
 import com.agoda.dto.DownloadFileJsonProtocol._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.{HttpService, RequestContext}
+import com.agoda.ConfigurationSupport.Downloader.defaultLocation
 
 trait DownloadRoute extends HttpService {
 
@@ -25,7 +26,7 @@ trait DownloadRoute extends HttpService {
           requestContext => {
             val flowActor = downloadFlow(requestContext)
             flowActor ! BulkDownloadMode
-            flowActor ! BulkDownload(urlList, "defaultLocation")
+            flowActor ! BulkDownload(urlList, defaultLocation)
           }
         }
       }
