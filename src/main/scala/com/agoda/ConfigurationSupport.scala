@@ -8,4 +8,9 @@ object ConfigurationSupport {
     val port = config.getInt("spray.can.server.port")
     val host = config.getString("spray.can.server.host")
   }
+
+  object Downloader {
+    val defaultLocation = config.getString("downloader.default-location")
+  }
+
 }

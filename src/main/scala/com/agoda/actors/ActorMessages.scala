@@ -4,11 +4,13 @@ import com.agoda.dto.DownloadFileDto
 
 object DownloadFlow {
 
-  case class FileDownloaded(fileName: String)
+  case class FileDownloaded(path: String)
 
   case class FileDownloadFailed(path: String, cause: Throwable)
 
   case class InvalidDirectory(directory: String)
+  case class BulkDownload(strings: Seq[String], defaultLocation: String)
+  case object BulkDownloadMode
 
 }
 

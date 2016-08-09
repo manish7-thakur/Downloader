@@ -21,7 +21,7 @@ class DownloadUtilsSpecs extends Specification with DownloadUtils {
           directoryExists("/ext/invalid") mustEqual false
         }
         "say so if download directory doesn't exists" in {
-          directoryExists("/etc") mustEqual true
+          directoryExists("src/test/resources") mustEqual true
         }
       }
       "#extractSftpParameters" should {
