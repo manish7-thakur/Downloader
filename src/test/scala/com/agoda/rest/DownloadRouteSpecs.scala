@@ -42,7 +42,6 @@ class DownloadRouteSpecs extends Specification with Specs2RouteTest with Downloa
       "unmarshall the json list to list of url strings" in {
         Post("/api/bulkdownload", List("url1", "url2")) ~> downloadRoute ~> check {
           handled must beTrue
-          println(response.toString)
           responseAs[List[String]] shouldEqual List("url1", "url2")
         }
       }

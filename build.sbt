@@ -4,7 +4,8 @@ version := "1.0"
 
 scalaVersion := "2.11.7"
 
-resolvers += "spray" at "http://repo.spray.io/"
+resolvers ++= Seq("spray" at "http://repo.spray.io/",
+"Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases")
 
 libraryDependencies <++= scalaVersion { v =>
   val sprayVersion = "1.3.3"

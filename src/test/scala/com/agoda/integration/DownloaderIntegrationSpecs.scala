@@ -50,10 +50,10 @@ class DownloaderIntegrationSpecs extends Specification {
   }
   "api/bulkdownload" should {
     "download multiple files simultaneously" in new IntegrationScope {
-      val req = url(s"http://$host:$port/$baseUrlBulkDownload").setContentType(contentType, encoding) << """["http://www.pdf995.com/samples/widgets.pdf", "ftp://ftp.funet.fi/pub/standards/RFC/rfc959.txt"]""" POST
+      val req = url(s"http://$host:$port/$baseUrlBulkDownload").setContentType(contentType, encoding) << """["http://www.pdf995.com/samples/widgets.pdf", "https://www.google.com"]""" POST
       val response = hitNow(req, waitAMinute)
       val firstFilePath = "src/test/resources/widgets.pdf"
-      val secondFilePath = "src/test/resources/rfc959.txt"
+      val secondFilePath = "src/test/resources/www.google.com"
       response.getResponseBody shouldEqual Map(firstFilePath -> "OK", secondFilePath -> "OK").toJson.prettyPrint
       Files.exists(Paths.get(firstFilePath)) shouldEqual true
       Files.exists(Paths.get(secondFilePath)) shouldEqual true
