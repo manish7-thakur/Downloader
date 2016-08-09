@@ -1,9 +1,12 @@
 package com.agoda.rest
 
+import java.time.{ZoneOffset, ZoneId, LocalDate, LocalDateTime}
+
 import akka.actor.{Actor, ActorRefFactory}
 import akka.testkit.TestActorRef
 import com.agoda.actors.DownloadFile
 import com.agoda.actors.DownloadFlow.{BulkDownload, BulkDownloadMode}
+import com.agoda.domain.Pong
 import com.agoda.dto.DownloadFileDto
 import com.agoda.dto.DownloadFileJsonProtocol._
 import org.specs2.mutable.Specification
@@ -43,6 +46,18 @@ class DownloadRouteSpecs extends Specification with Specs2RouteTest with Downloa
         Post("/api/bulkdownload", List("url1", "url2")) ~> downloadRoute ~> check {
           handled must beTrue
           responseAs[List[String]] shouldEqual List("url1", "url2")
+        }
+      }
+    }
+  }
+  "/ping" >> {
+    "GET on api/ping" should {
+      "return the current time" in {
+        Get("/api/ping") ~> downloadRoute ~> check {
+          handled must beTrue
+          val response = responseAs[Pong]
+          val zeroSecondOffset = ZoneOffset.ofTotalSeconds(0)
+          LocalDateTime.now().toInstant(zeroSecondOffset).toEpochMilli  should beGreaterThan(LocalDateTime.parse(response.pong).toInstant(zeroSecondOffset).toEpochMilli)
         }
       }
     }

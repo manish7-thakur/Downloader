@@ -1,9 +1,12 @@
 package com.agoda.rest
 
+import java.time.LocalDateTime
+
 import akka.actor.ActorRef
 import com.agoda.ConfigurationSupport.Downloader.defaultLocation
 import com.agoda.actors.DownloadFile
 import com.agoda.actors.DownloadFlow.{BulkDownload, BulkDownloadMode}
+import com.agoda.domain.Pong
 import com.agoda.dto.DownloadFileDto
 import com.agoda.dto.DownloadFileJsonProtocol._
 import spray.httpx.SprayJsonSupport._
@@ -30,6 +33,8 @@ trait DownloadRoute extends HttpService {
           }
         }
       }
+    } ~ path("ping") {
+      complete(Pong(LocalDateTime.now().toString))
     }
   }
 }
