@@ -5,7 +5,7 @@ connection and local server setup. The integration tests `DownloaderIntegrationS
 
 ## Command Line Testing
 
-### Download a file
+### Download a single file
 
 #### HTTP
 
@@ -36,9 +36,16 @@ connection and local server setup. The integration tests `DownloaderIntegrationS
 For SFTP protocol the server uses authentication. Port is assumed to be 22. The format for the URL would be :
 `sftp://username:password@host;filePath`
 
-
      curl -H "Content-Type:application/json; charset=utf-8" \
           -v \
           -X POST \
           -d '{"url": "sftp://username:neverSharePasswords@host;/path/to/file", "location": "/Users/mthakur/Downloads"}' \
           http://localhost:5000/api/download
+          
+### Download multiple files
+
+    curl -H "Content-Type:application/json; charset=utf-8" \
+         -v \
+         -X POST \
+         -d '["http://www.pdf995.com/samples/widgets.pdf", "https://www.google.com"]'\
+         http://localhost:5000/api/bulkdownload
