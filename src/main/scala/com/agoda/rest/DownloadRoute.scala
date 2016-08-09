@@ -1,13 +1,13 @@
 package com.agoda.rest
 
 import akka.actor.ActorRef
+import com.agoda.ConfigurationSupport.Downloader.defaultLocation
 import com.agoda.actors.DownloadFile
 import com.agoda.actors.DownloadFlow.{BulkDownload, BulkDownloadMode}
 import com.agoda.dto.DownloadFileDto
 import com.agoda.dto.DownloadFileJsonProtocol._
 import spray.httpx.SprayJsonSupport._
 import spray.routing.{HttpService, RequestContext}
-import com.agoda.ConfigurationSupport.Downloader.defaultLocation
 
 trait DownloadRoute extends HttpService {
 
