@@ -11,7 +11,7 @@ class ConfigurationSpecs extends Specification {
       config.getString("spray.can.server.request-timeout") shouldEqual "infinite"
     }
     "be able to read the default-location from Configuration file" in {
-      ConfigurationSupport.Downloader.defaultLocation shouldEqual "/Users/mthakur/downloads"
+      ConfigurationSupport.Downloader.defaultLocation shouldEqual "src/test/resources"
     }
     "be able to read the port settings from Configuration file" in {
       ConfigurationSupport.SpraySupport.port shouldEqual 5000
